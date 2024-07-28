@@ -7,24 +7,27 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 app = Flask(__name__)
 
-def get_new_link_from_redirect(redirect_url):
+def create_driver():
     options = Options()
     options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
     options.add_argument('log-level=3')
     driver = webdriver.Chrome(options=options)
+    return driver
+
+def get_new_link_from_redirect(redirect_url):
+    driver = create_driver()
     try:
         driver.get(redirect_url)
         new_link = driver.current_url
-        print('Current new link: ' + new_link)
     finally:
         driver.quit()
     return new_link
 
 def get_video_link(show_name):
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument('log-level=3')
-    driver = webdriver.Chrome(options=options)
+    driver = create_driver()
     try:
         link = f"https://cinemathek.net/filme/{show_name}"
         driver.get(link)
@@ -32,7 +35,6 @@ def get_video_link(show_name):
             EC.presence_of_element_located((By.CSS_SELECTOR, 'iframe.metaframe'))
         )
         src_url = iframe_element.get_attribute('src')
-        print(f'The src URL of the iframe is: {src_url}')
     finally:
         driver.quit()
     return src_url
@@ -45,14 +47,13 @@ def index():
 def search():
     text_input = request.form['textInput'].replace(' ', '')
     show_name = text_input.strip()
-    print(show_name)
 
     redirect_url = get_video_link(show_name)
     if redirect_url:
         new_url = get_new_link_from_redirect(redirect_url)
         return new_url
     else:
-        return "Video link not found"
+        return "Video link not found", 404
 
 if __name__ == '__main__':
     app.run(debug=True)
