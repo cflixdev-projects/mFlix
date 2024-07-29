@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request
+from selenium.common import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -26,15 +27,31 @@ def get_new_link_from_redirect(redirect_url):
         driver.quit()
     return new_link
 
+def get_new_link_from_redirect(redirect_url):
+    driver = create_driver()
+    try:
+        driver.get(redirect_url)
+        new_link = driver.current_url
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        driver.quit()
+    return new_link
+
+
 def get_video_link(show_name):
     driver = create_driver()
     try:
         link = f"https://cinemathek.net/filme/{show_name}"
         driver.get(link)
-        iframe_element = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'iframe.metaframe'))
-        )
-        src_url = iframe_element.get_attribute('src')
+        try:
+            iframe_element = WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'iframe.metaframe'))
+            )
+            src_url = iframe_element.get_attribute('src')
+        except TimeoutException:
+            print("Das iframe-Element konnte nicht innerhalb von 20 Sekunden gefunden werden.")
+            src_url = None
     finally:
         driver.quit()
     return src_url
