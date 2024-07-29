@@ -18,6 +18,7 @@ def create_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
+
 def get_new_link_from_redirect(redirect_url):
     driver = create_driver()
     try:
