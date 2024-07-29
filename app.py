@@ -23,15 +23,6 @@ def get_new_link_from_redirect(redirect_url):
     try:
         driver.get(redirect_url)
         new_link = driver.current_url
-    finally:
-        driver.quit()
-    return new_link
-
-def get_new_link_from_redirect(redirect_url):
-    driver = create_driver()
-    try:
-        driver.get(redirect_url)
-        new_link = driver.current_url
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
